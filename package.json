@@ -1,0 +1,40 @@
+{
+  "name": "turnleaf",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "description": "Turnleaf — turn Paper Minecraft plugins into Folia-compatible plugins, no source code needed",
+  "repository": "github:EmanuelNorsk/turnleaf",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "cli": "tsx src/cli.ts",
+    "bundle": "node scripts/bundle.mjs",
+    "stage": "node scripts/stage.mjs",
+    "build:engine": "mvn -q package",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "app": "tauri dev",
+    "app:build": "tauri build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "openai": "^6.45.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.0",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.22.5",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}

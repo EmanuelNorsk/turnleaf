@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "localhost-window-controls",
+  "description": "Window controls for the custom titlebar on the localhost UI the app navigates to after loading.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["http://localhost:4646", "http://127.0.0.1:4646"]
+  },
+  "permissions": [
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:window:allow-is-maximized"
+  ]
+}

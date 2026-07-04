@@ -1,0 +1,30 @@
+# Node
+node_modules/
+dist/
+
+# Java / Maven
+target/
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/
+
+# Fetched tools & local-only artifacts
+tools/
+folia/
+resources/
+reports/
+
+# Plugin jars — paid/third-party, never publish (probe-plugin *source* stays tracked)
+tests/*.jar
+out/
+
+# Secrets & local app state
+.env.local
+.env
+.setup-done
+.ai.json
+
+# Misc
+*.log
+uploads/

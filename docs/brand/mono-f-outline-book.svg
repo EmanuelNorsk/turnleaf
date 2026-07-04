@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Mono F: open book in thick outline style — hollow pages over a back
+       cover, pages rising above it, V-spine at the center. -->
+  <rect width="512" height="512" rx="96" fill="#171c23"/>
+  <g stroke="#4ade80" stroke-width="24" stroke-linejoin="round" stroke-linecap="round" fill="#171c23">
+    <!-- back cover: full rectangle, wider — its top edge tucks behind the pages,
+         leaving the top corners visible like the reference -->
+    <path d="M84 176 L84 408 L428 408 L428 176 Z"/>
+    <!-- left page (small inset keeps the cover corner visible without dwarfing the pages) -->
+    <path d="M256 182 C 226 138, 158 130, 124 138 L124 360 C 158 352, 226 360, 256 392 Z"/>
+    <!-- right page -->
+    <path d="M256 182 C 286 138, 354 130, 388 138 L388 360 C 354 352, 286 360, 256 392 Z"/>
+  </g>
+</svg>

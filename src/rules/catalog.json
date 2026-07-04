@@ -1,0 +1,102 @@
+{
+  "version": 0,
+  "rules": [
+    {
+      "id": "bukkit-scheduler",
+      "severity": "blocker",
+      "title": "BukkitScheduler call (throws on Folia)",
+      "detail": "org.bukkit.scheduler.BukkitScheduler methods throw UnsupportedOperationException on Folia. Tier 1 redirects these to the shim scheduler facade.",
+      "match": {
+        "owners": ["org/bukkit/scheduler/BukkitScheduler"]
+      }
+    },
+    {
+      "id": "get-scheduler",
+      "severity": "review",
+      "title": "Scheduler lookup (Bukkit/Server.getScheduler)",
+      "detail": "Acquiring the BukkitScheduler is harmless on Folia — only using it throws. The uses are redirected by Tier 1; the lookup stays in place.",
+      "match": {
+        "owners": ["org/bukkit/Bukkit", "org/bukkit/Server"],
+        "names": ["getScheduler"]
+      }
+    },
+    {
+      "id": "bukkit-runnable",
+      "severity": "blocker",
+      "title": "BukkitRunnable scheduling/cancel",
+      "detail": "BukkitRunnable.runTask*/cancel/getTaskId rely on the Bukkit scheduler. Tier 1 redirects these call sites to shim helpers with a runnable-to-task registry.",
+      "match": {
+        "owners": ["org/bukkit/scheduler/BukkitRunnable"],
+        "names": [
+          "runTask",
+          "runTaskLater",
+          "runTaskTimer",
+          "runTaskAsynchronously",
+          "runTaskLaterAsynchronously",
+          "runTaskTimerAsynchronously",
+          "cancel",
+          "getTaskId"
+        ]
+      },
+      "extendOwnersWithSubclassesOf": "org/bukkit/scheduler/BukkitRunnable"
+    },
+    {
+      "id": "is-primary-thread",
+      "severity": "warning",
+      "title": "Bukkit.isPrimaryThread() (semantics change on Folia)",
+      "detail": "Folia has many region threads instead of one primary thread. The shim provides a region-ownership-aware replacement.",
+      "match": {
+        "owners": ["org/bukkit/Bukkit", "org/bukkit/Server"],
+        "names": ["isPrimaryThread"]
+      }
+    },
+    {
+      "id": "get-current-tick",
+      "severity": "blocker",
+      "title": "Bukkit.getCurrentTick() (throws off a region thread on Folia)",
+      "detail": "org.bukkit.Bukkit.getCurrentTick() throws IllegalStateException ('No currently ticking region') when called off a region thread — e.g. from an async event handler. Tier 1 redirects it to a shim that returns the real tick when available and a continuous wall-clock estimate otherwise.",
+      "match": {
+        "owners": ["org/bukkit/Bukkit"],
+        "names": ["getCurrentTick"]
+      }
+    },
+    {
+      "id": "entity-potion-effect",
+      "severity": "review",
+      "title": "Entity potion-effect change (needs the entity's region thread on Folia)",
+      "detail": "addPotionEffect/addPotionEffects/removePotionEffect mutate an entity. On Folia these throw a main-thread check when run off the entity's region (e.g. from a global-scheduler task or async thread). Tier 1 routes them through the entity's scheduler when the current thread doesn't own the entity.",
+      "match": {
+        "ownerPrefix": "org/bukkit/entity/",
+        "names": ["addPotionEffect", "addPotionEffects", "removePotionEffect"]
+      }
+    },
+    {
+      "id": "entity-teleport",
+      "severity": "review",
+      "title": "Teleport call (may require teleportAsync on Folia)",
+      "detail": "Matched by name+signature because the call-site owner is the concrete receiver type (Player, LivingEntity, ...). Region-crossing teleports must be async on Folia; routed through the shim teleport helper in Tier 1.",
+      "match": {
+        "names": ["teleport"],
+        "descContains": "Lorg/bukkit/Location;"
+      }
+    },
+    {
+      "id": "nms-internals",
+      "severity": "warning",
+      "title": "Uses Minecraft server internals (NMS) — version-sensitive",
+      "detail": "Calls into net.minecraft.* classes, which change with every Minecraft version and are not covered by any API compatibility promise. The converter cannot port these; if the plugin targets a different Minecraft version than your server, these calls are the likeliest thing to break.",
+      "match": {
+        "ownerPrefix": "net/minecraft/"
+      }
+    },
+    {
+      "id": "craftbukkit-internals",
+      "severity": "warning",
+      "title": "Uses CraftBukkit internals — version-sensitive",
+      "detail": "Calls into org.bukkit.craftbukkit.* implementation classes (often via reflection on the versioned package name). These are version-specific server internals; plugins built for older Minecraft frequently crash here on modern servers.",
+      "match": {
+        "ownerPrefix": "org/bukkit/craftbukkit/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Turnleaf</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: #0e1216;
+      color: #e6edf3;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    .titlebar {
+      flex: none; height: 34px; display: flex; align-items: center; justify-content: flex-end;
+      background: #151a21;
+      user-select: none; -webkit-user-select: none;
+    }
+    .tb-btn {
+      width: 46px; height: 34px; display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: #93a0b1; cursor: pointer; transition: background 0.12s, color 0.12s;
+    }
+    .tb-btn svg { width: 12px; height: 12px; }
+    .tb-btn:hover { background: rgba(255,255,255,0.08); color: #e4ebf3; }
+    .tb-close:hover { background: #e5644b; color: #fff; }
+    .fill { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+    .logo { color: #4ade80; width: 72px; height: 72px; animation: pulse 1.4s ease-in-out infinite; }
+    .logo svg { width: 100%; height: 100%; display: block; }
+    h1 { font-size: 1.3rem; margin: 0; letter-spacing: 0.5px; }
+    .sub { color: #8b98a9; font-size: 0.9rem; }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="titlebar" data-tauri-drag-region>
+    <button id="tb-close" class="tb-btn tb-close" title="Close" tabindex="-1">
+      <svg viewBox="0 0 12 12"><path d="M3 3 L9 9 M9 3 L3 9" stroke="currentColor" stroke-width="1.1"/></svg>
+    </button>
+  </div>
+  <div class="fill">
+  <div class="logo">
+    <svg viewBox="0 0 512 512" fill="#0e1216" stroke="currentColor" stroke-width="24" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M84 176 L84 408 L428 408 L428 176 Z"/>
+      <path d="M256 182 C 226 138, 158 130, 124 138 L124 360 C 158 352, 226 360, 256 392 Z"/>
+      <path d="M256 182 C 286 138, 354 130, 388 138 L388 360 C 354 352, 286 360, 256 392 Z"/>
+    </svg>
+  </div>
+  <h1>Turnleaf</h1>
+  <div class="sub" id="sub">Starting the engine…</div>
+  </div>
+  <script>
+    const win = window.__TAURI__?.window?.getCurrentWindow?.();
+    document.getElementById("tb-close").addEventListener("click", () => win?.close());
+    // The launcher navigates away once the local server is up. If we are still
+    // here after its 60s timeout, the server never started — almost always a
+    // missing prerequisite.
+    setTimeout(() => {
+      document.getElementById("sub").innerHTML =
+        "The engine did not start.<br><br>" +
+        "Turnleaf needs <b>Node.js 20+</b> and <b>Java 21+</b> installed and on your PATH.<br>" +
+        "Install them, then restart the app.";
+    }, 65000);
+  </script>
+</body>
+</html>

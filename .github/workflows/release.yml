@@ -1,0 +1,113 @@
+# Builds installers for Windows, Linux, and macOS and attaches them to a
+# GitHub release.
+#
+#   - Push a tag like v0.4.0  → builds all three and publishes the release.
+#   - Manual run (workflow_dispatch) → builds and uploads them as workflow
+#     artifacts, so the pipeline can be tested without tagging.
+#
+# Each runner does what a contributor would: Node, JDK 21, Maven, Rust —
+# provided or preinstalled. tools/ is gitignored, so scripts/fetch-tools.mjs
+# recreates it (Vineflower + compile-gate classpath).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            bundles: nsis
+            artifacts: src-tauri/target/release/bundle/nsis/*-setup.exe
+          - os: ubuntu-latest
+            bundles: deb,appimage
+            artifacts: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/appimage/*.AppImage
+          - os: macos-latest
+            bundles: dmg
+            artifacts: src-tauri/target/release/bundle/dmg/*.dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux system dependencies (webkit etc.)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Check tag matches package.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ("v$v" -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} does not match package.json version $v — bump the version first."
+          }
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Fetch tools (Vineflower + compile-gate classpath)
+        run: node scripts/fetch-tools.mjs
+
+      - name: Build Java engine + shim runtime
+        run: mvn -q package
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build the app (stage + Tauri + installer)
+        run: npm run app:build -- --bundles ${{ matrix.bundles }}
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: turnleaf-${{ matrix.os }}
+          path: ${{ matrix.artifacts }}
+
+  # Single publisher so the build jobs never race creating the release. Runs
+  # even if one platform's build failed, so a single-OS hiccup can't block the
+  # release — it publishes whatever installers were produced.
+  release:
+    if: ${{ always() && startsWith(github.ref, 'refs/tags/') }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: Publish release with installers
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installers/**
+          generate_release_notes: true

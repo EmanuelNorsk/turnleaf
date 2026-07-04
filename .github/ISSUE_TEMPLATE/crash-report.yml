@@ -1,0 +1,54 @@
+name: Crash / converter gap
+description: A converted plugin crashed on Folia, or the converter missed something
+title: "[crash] "
+labels: ["crash"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tip: the app can file most of this for you — analyze the crash log
+        (or use live Watch) and hit **Report**. It scrubs private data
+        (IPs, player names, UUIDs) automatically. Use this form if you're
+        reporting manually — please scrub those yourself.
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin and version
+      placeholder: "e.g. ItemsAdder 4.0.17"
+    validations:
+      required: true
+  - type: input
+    id: folia
+    attributes:
+      label: Folia / Minecraft version
+      placeholder: "e.g. folia-26.1.2-8"
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: folia-on-demand version
+      description: Shown in the app header, or `npm run cli -- --version`
+      placeholder: "e.g. 0.6.1"
+    validations:
+      required: true
+  - type: textarea
+    id: trace
+    attributes:
+      label: Crash log / stack trace
+      description: The error plus the full stack trace (remove IPs / player names / UUIDs)
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: What happened, and when?
+      placeholder: "Crashed on startup / when a player did X / after running for a while…"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I converted with the latest release (outdated conversions are flagged in the app — re-convert first)
+        - label: I tried AI Repair on this crash (optional, but its result is useful info)

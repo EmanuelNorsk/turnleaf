@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+  <!-- App/taskbar icon: just the book — green outline, dark fill INSIDE the
+       book only, everything outside transparent (no rounded-square tile). -->
+  <g stroke="#4ade80" stroke-width="40" stroke-linejoin="round" stroke-linecap="round" fill="#171c23">
+    <!-- back cover -->
+    <path d="M54 132 L54 452 L458 452 L458 132 Z"/>
+    <!-- left page -->
+    <path d="M256 140 C 216 82, 130 74, 88 82 L88 384 C 130 372, 216 384, 256 426 Z"/>
+    <!-- right page -->
+    <path d="M256 140 C 296 82, 382 74, 424 82 L424 384 C 382 372, 296 384, 256 426 Z"/>
+  </g>
+</svg>
