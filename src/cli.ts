@@ -262,6 +262,18 @@ program
   });
 
 program
+  .command("corpus")
+  .description("Download the top Paper/Spigot plugins from Modrinth, convert them all, boot-test in batches, and emit COMPATIBILITY.md rows")
+  .option("--count <n>", "how many plugins to test", "25")
+  .option("--dir <dir>", "folder for downloaded jars (gitignored)", "corpus")
+  .option("--no-boot", "convert only, skip boot testing")
+  .option("--batch <n>", "plugins per boot batch", "6")
+  .action(async (opts: { count: string; dir: string; boot: boolean; batch: string }) => {
+    const { runCorpus } = await import("./corpus/corpus.js");
+    await runCorpus({ count: Number(opts.count), dir: opts.dir, boot: opts.boot, batchSize: Number(opts.batch) });
+  });
+
+program
   .command("batch")
   .description("Convert every plugin jar in a directory (skips already-converted *-folia*.jar)")
   .argument("<dir>", "directory containing plugin jars")

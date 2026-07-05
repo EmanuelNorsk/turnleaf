@@ -18,6 +18,7 @@ reports/
 # Plugin jars — paid/third-party, never publish (probe-plugin *source* stays tracked)
 tests/*.jar
 out/
+corpus/
 
 # Secrets & local app state
 .env.local
