@@ -2,7 +2,7 @@
 
 Plugins we have personally converted and **boot-verified on a real Folia server** (Folia 26.1.2). "Clean" means: 0 scheduler blockers, 0 region-lock risks after conversion, and the plugin enables without plugin-scoped errors on boot.
 
-Most rows below come from a sweep of the top 60 Paper/Spigot plugins on Modrinth (July 2026), run with the built-in `turnleaf corpus` command. Conversion quality improves over time — if a plugin failed here on an older version of this tool, re-convert with the latest release before concluding anything.
+Most rows below come from a sweep of the top 60 Paper/Spigot plugins on Modrinth (July 2026), run with the built-in `turnleaf corpus` command. Conversion quality improves over time — if a plugin failed here on an older version of this tool, re-convert with the latest release before concluding anything. Rows that touch world settings (Multiverse, InvSee++, PowerRanks) need a build newer than v1.0.0.
 
 ## Converted and boot-verified
 
@@ -23,11 +23,14 @@ Most rows below come from a sweep of the top 60 Paper/Spigot plugins on Modrinth
 | JourneyMap | 6.0.0 | ✅ clean | |
 | Let Me Despawn | 1.0.0 | ✅ clean | |
 | LifeStealZ | 2.21.1 | ✅ clean | |
+| Multiverse-Core | 5.7.2-pre.2 | ✅ clean | convert + **AI Repair** — the repair patches its spawn-safety probe to skip off-region reads on Folia |
+| Multiverse-Inventories | 5.3.5-pre | ✅ clean | boots clean alongside repaired Multiverse-Core |
 | MythicEnchants | 5.13.0 | ✅ clean | requires MythicMobs |
 | MythicMobs (Premium) | 5.13.0 | ✅ clean | |
 | OneBlock | 1.6.2 | ✅ clean | |
 | Oraxen | 1.217.0 | ✅ clean | |
 | PlayerKits 2 | 1.23.1 | ✅ clean | |
+| PowerRanks | 1.10.10 | ✅ clean | convert + **AI Repair** — tablist rank sorting turns itself off with a one-line warning (Folia does not support scoreboard team registration); everything else works |
 | ProtocolLib | dev build | ✅ clean | converted as a dependency for ItemsAdder |
 | Server Redirect | 1.4.3 | ✅ clean | |
 | SetHome | 6.2 | ✅ clean | |
@@ -42,17 +45,14 @@ Most rows below come from a sweep of the top 60 Paper/Spigot plugins on Modrinth
 | Plugin | Version tested | Result | Notes |
 |---|---|---|---|
 | Discord Integration | 3.0.7.1 | 🟡 boots with errors | the only boot error is the unconfigured `INSERT BOT TOKEN` placeholder — the conversion itself is clean; set your token and try it |
-| FastAsyncWorldEdit | 2.15.2 | 🟡 boots with errors | warns during its block-type cache init; FAWE does not support Folia upstream — expect breakage in actual editing |
-| Multiverse-Core | 5.7.2-pre.2 | 🟡 boots with errors | its config load trips Folia's "cannot modify server settings off of the global region" guard — needs author-side Folia support |
-| Multiverse-Inventories | 5.3.5-pre | 🟡 boots with errors | fails as collateral of Multiverse-Core (above) |
-| Orbital Strike Cannon | 7.0 | 🟡 boots with errors | throws in its own `onEnable` |
-| PowerRanks | 1.10.10 | 🟡 boots with errors | its tablist task calls `Scoreboard.registerNewTeam`, which Folia itself does not support yet (`UnsupportedOperationException`) |
+| Orbital Strike Cannon | 7.0 | 🟡 boots with errors | calls `Bukkit.reloadData()` in `onEnable`, which Folia cannot do — the plugin catches the failure itself and keeps working; the boot error is cosmetic |
 
 ## Needs an author update
 
 | Plugin | Version tested | Result | Notes |
 |---|---|---|---|
 | Dynmap | 3.7-beta-8 | ❌ needs author update | boots, but its NMS-reflection layer does not recognize Folia (`Cannot find net.minecraft.server.BiomeBase`), so map rendering fails |
+| FastAsyncWorldEdit | 2.15.2 | ❌ needs author update | its own boot banner says this FAWE build does not support this Minecraft version — it fails identically on plain Paper; not a Folia/conversion issue |
 | WolfyUtilities | 4.17-beta.1 | ❌ needs author update | uses legacy NMS (versioned CraftBukkit package + per-version NMS adapters). Would fail on plain modern Paper too — not a Folia/conversion issue. AI Repair fixed its version parsing, but it ships no NMS adapter for modern Minecraft. |
 | CustomCrafting | 4.17-beta.5 | ❌ blocked | hard-depends on WolfyUtilities (above) |
 

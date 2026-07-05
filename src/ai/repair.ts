@@ -25,6 +25,7 @@ HARD RULES:
 - Fix the crash. Preserve the plugin's features and observable behavior in the non-crashing paths EXACTLY.
 - Do not rename, add, or remove public/protected members. Keep every method signature identical.
 - Prefer the minimal correct fix: null/thread-ownership guards, deferring work to the right scheduler, thread-safe data access, tolerating a missing optional dependency.
+- For Folia thread-check failures ("Cannot read world asynchronously", "Thread failed main thread check", "off of the global region"): prefer a PRE-CHECK that skips the operation — Bukkit.isOwnedByCurrentRegion(location|entity) or Bukkit.getServer().isGlobalTickThread() — over catching the thrown exception. Folia logs its own server-side error dump BEFORE the exception reaches your catch block, so only a pre-check gives a clean boot.
 - The code must compile against the provided sources plus the original jar. Do not invent classes or imports that don't exist.
 
 OUTPUT FORMAT — respond with ONLY a JSON object, nothing else:
