@@ -2,29 +2,66 @@
 
 Plugins we have personally converted and **boot-verified on a real Folia server** (Folia 26.1.2). "Clean" means: 0 scheduler blockers, 0 region-lock risks after conversion, and the plugin enables without plugin-scoped errors on boot.
 
-Conversion quality improves over time — if a plugin failed here on an older version of this tool, re-convert with the latest release before concluding anything.
+Most rows below come from a sweep of the top 60 Paper/Spigot plugins on Modrinth (July 2026), run with the built-in `turnleaf corpus` command. Conversion quality improves over time — if a plugin failed here on an older version of this tool, re-convert with the latest release before concluding anything.
+
+## Converted and boot-verified
 
 | Plugin | Version tested | Result | Notes |
 |---|---|---|---|
+| Advanced Backups | 3.7.1 | ✅ clean | |
 | AdvancedEnchantments | 9.23.8 | ✅ clean | 41 scheduler blockers fixed |
 | AdvancedPets | 2.22.14 | ✅ clean | needs Vault installed (its Vault hook throws without it) |
+| BlueMap | 5.22 | ✅ clean | |
+| BuildPaste | 1.11.1 | ✅ clean | |
 | CalcMod | 1.5.1 | ✅ clean | |
 | Common Network | 1.0.23 | ✅ clean | |
 | CustomDrops | (revamped) | ✅ clean | |
-| EssentialsX | 2.22.1-dev | ✅ clean | |
+| EssentialsX | 2.22.1-dev | ✅ clean | 2.22.0 stable also verified |
+| InvSee++ | 0.31.15 | ✅ clean | ships `folia-supported: false` plus a delay-0 bug in its own dormant Folia path — the converter overrides the flag and clamps the delay |
 | ItemsAdder | 4.0.17 | ✅ clean | requires ProtocolLib **dev build** (rejects stable) — convert that too |
+| ItemSwapper | 0.2.1 | ✅ clean | |
 | JourneyMap | 6.0.0 | ✅ clean | |
 | Let Me Despawn | 1.0.0 | ✅ clean | |
+| LifeStealZ | 2.21.1 | ✅ clean | |
 | MythicEnchants | 5.13.0 | ✅ clean | requires MythicMobs |
 | MythicMobs (Premium) | 5.13.0 | ✅ clean | |
+| OneBlock | 1.6.2 | ✅ clean | |
 | Oraxen | 1.217.0 | ✅ clean | |
+| PlayerKits 2 | 1.23.1 | ✅ clean | |
 | ProtocolLib | dev build | ✅ clean | converted as a dependency for ItemsAdder |
+| Server Redirect | 1.4.3 | ✅ clean | |
+| SetHome | 6.2 | ✅ clean | |
+| TabTPS | 1.4.1 | ✅ clean | |
+| TPS HUD | 1.9.0 | ✅ clean | |
 | Vault | 1.7.3 | ✅ clean | converted as a dependency for AdvancedPets |
+| Villager In A Bucket | 1.5.0 | ✅ clean | |
+| VoxelMap-Updated | 1.16.7 | ✅ clean | |
+
+## Boots, but with plugin-side errors
+
+| Plugin | Version tested | Result | Notes |
+|---|---|---|---|
+| Discord Integration | 3.0.7.1 | 🟡 boots with errors | the only boot error is the unconfigured `INSERT BOT TOKEN` placeholder — the conversion itself is clean; set your token and try it |
+| FastAsyncWorldEdit | 2.15.2 | 🟡 boots with errors | warns during its block-type cache init; FAWE does not support Folia upstream — expect breakage in actual editing |
+| Multiverse-Core | 5.7.2-pre.2 | 🟡 boots with errors | its config load trips Folia's "cannot modify server settings off of the global region" guard — needs author-side Folia support |
+| Multiverse-Inventories | 5.3.5-pre | 🟡 boots with errors | fails as collateral of Multiverse-Core (above) |
+| Orbital Strike Cannon | 7.0 | 🟡 boots with errors | throws in its own `onEnable` |
+| PowerRanks | 1.10.10 | 🟡 boots with errors | its tablist task calls `Scoreboard.registerNewTeam`, which Folia itself does not support yet (`UnsupportedOperationException`) |
+
+## Needs an author update
+
+| Plugin | Version tested | Result | Notes |
+|---|---|---|---|
+| Dynmap | 3.7-beta-8 | ❌ needs author update | boots, but its NMS-reflection layer does not recognize Folia (`Cannot find net.minecraft.server.BiomeBase`), so map rendering fails |
 | WolfyUtilities | 4.17-beta.1 | ❌ needs author update | uses legacy NMS (versioned CraftBukkit package + per-version NMS adapters). Would fail on plain modern Paper too — not a Folia/conversion issue. AI Repair fixed its version parsing, but it ships no NMS adapter for modern Minecraft. |
 | CustomCrafting | 4.17-beta.5 | ❌ blocked | hard-depends on WolfyUtilities (above) |
 
-Already Folia-native as shipped (no conversion needed): VeinMiner, Simple Voice Chat, VeinMiner Enchantment, Chunky, WorldEdit, Emotecraft, Plasmo Voice, Customizable Player Models.
+## Already Folia-native (no conversion needed)
 
-**Boot groups tested together**: ProtocolLib + Vault + ItemsAdder + Oraxen + CustomDrops + AdvancedPets (PASS), and AdvancedEnchantments + EssentialsX + MythicEnchants + MythicMobs (PASS).
+These popular plugins ship native Folia support as-is — install them directly: VeinMiner, Simple Voice Chat, VeinMiner Enchantment, Chunky, Chunky Border, WorldEdit, WorldGuard, Emotecraft, Plasmo Voice, Simple Voice Chat Discord Bridge, Customizable Player Models, ViaVersion, ViaBackwards, ViaRewind, LuckPerms, PatPat, SkinsRestorer, Geyser, TAB, PacketEvents, Terra, Grim Anticheat, DiscordSRV, Click Villagers, mclo.gs, CoreProtect, FancyNpcs, FancyHolograms, NBT-API, CrazyCrates, Infinite Villager Trading, LagFixer, AuthMe ReReloaded, ImageFrame.
+
+---
+
+**How these were tested**: converted plugins are booted together in groups of up to 6 (dependencies kept in the same group), on a fresh Folia 26.1.2 server. Groups verified by hand: ProtocolLib + Vault + ItemsAdder + Oraxen + CustomDrops + AdvancedPets (PASS), and AdvancedEnchantments + EssentialsX + MythicEnchants + MythicMobs (PASS).
 
 Converted a plugin yourself? Open an issue (the app's crash analyzer has a one-click **Report** button) or a PR adding a row — plugin name, version, result, and any dependency notes.

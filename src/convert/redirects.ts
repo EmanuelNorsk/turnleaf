@@ -83,6 +83,10 @@ export function buildRedirects(
       // Base types (Entity, Inventory, BlockState, …) match any subtype call
       // site by package prefix, since the concrete receiver type varies.
       ownerPrefix = receiver.slice(0, receiver.lastIndexOf("/") + 1);
+    } else if (receiver.startsWith("io/papermc/paper/")) {
+      // Folia's own scheduler interfaces (tick-delay clamps). Call sites always
+      // go through the interface the Bukkit API hands out — exact match is enough.
+      owners = [receiver];
     } else if (receiver.startsWith("org/bukkit/")) {
       // Specific types (ExperienceOrb, InventoryView, Server, …) match by exact
       // owner plus every sub-interface — so a method declared on a supertype

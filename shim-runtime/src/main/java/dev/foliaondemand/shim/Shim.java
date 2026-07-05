@@ -1,6 +1,11 @@
 package dev.foliaondemand.shim;
 
+import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.Server;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
@@ -41,6 +46,7 @@ import java.util.function.Consumer;
  *   - BukkitScheduler  → exact-owner match
  *   - BukkitRunnable   → owner match incl. the plugin's own subclasses
  *   - Entity           → any owner under org/bukkit/entity/
+ *   - io.papermc.paper receivers (Folia's own schedulers) → exact-owner match
  * Do not add public static helpers here that are not redirect targets.
  */
 @SuppressWarnings("unused")
@@ -166,6 +172,53 @@ public final class Shim {
     public static boolean isQueued(BukkitScheduler s, int taskId) {
         ShimTask task = ShimCore.BY_ID.get(taskId);
         return task != null && !task.isCancelled();
+    }
+
+    // ===== Folia's own schedulers: clamp tick delays =====
+    // Plugins with their own (often untested) Folia code paths carry Bukkit
+    // habits over: the Bukkit scheduler treats delay 0 as "next tick", but
+    // Folia's tick schedulers throw IllegalArgumentException for anything < 1.
+    // Clamping preserves the Bukkit-intended semantics.
+
+    public static ScheduledTask runDelayed(GlobalRegionScheduler s, Plugin plugin, Consumer<ScheduledTask> task,
+                                           long delayTicks) {
+        return s.runDelayed(plugin, task, Math.max(1L, delayTicks));
+    }
+
+    public static ScheduledTask runAtFixedRate(GlobalRegionScheduler s, Plugin plugin, Consumer<ScheduledTask> task,
+                                               long initialDelayTicks, long periodTicks) {
+        return s.runAtFixedRate(plugin, task, Math.max(1L, initialDelayTicks), Math.max(1L, periodTicks));
+    }
+
+    public static ScheduledTask runDelayed(RegionScheduler s, Plugin plugin, World world, int chunkX, int chunkZ,
+                                           Consumer<ScheduledTask> task, long delayTicks) {
+        return s.runDelayed(plugin, world, chunkX, chunkZ, task, Math.max(1L, delayTicks));
+    }
+
+    public static ScheduledTask runDelayed(RegionScheduler s, Plugin plugin, Location location,
+                                           Consumer<ScheduledTask> task, long delayTicks) {
+        return s.runDelayed(plugin, location, task, Math.max(1L, delayTicks));
+    }
+
+    public static ScheduledTask runAtFixedRate(RegionScheduler s, Plugin plugin, World world, int chunkX, int chunkZ,
+                                               Consumer<ScheduledTask> task, long initialDelayTicks, long periodTicks) {
+        return s.runAtFixedRate(plugin, world, chunkX, chunkZ, task,
+                Math.max(1L, initialDelayTicks), Math.max(1L, periodTicks));
+    }
+
+    public static ScheduledTask runAtFixedRate(RegionScheduler s, Plugin plugin, Location location,
+                                               Consumer<ScheduledTask> task, long initialDelayTicks, long periodTicks) {
+        return s.runAtFixedRate(plugin, location, task, Math.max(1L, initialDelayTicks), Math.max(1L, periodTicks));
+    }
+
+    public static ScheduledTask runDelayed(EntityScheduler s, Plugin plugin, Consumer<ScheduledTask> task,
+                                           Runnable retired, long delayTicks) {
+        return s.runDelayed(plugin, task, retired, Math.max(1L, delayTicks));
+    }
+
+    public static ScheduledTask runAtFixedRate(EntityScheduler s, Plugin plugin, Consumer<ScheduledTask> task,
+                                               Runnable retired, long initialDelayTicks, long periodTicks) {
+        return s.runAtFixedRate(plugin, task, retired, Math.max(1L, initialDelayTicks), Math.max(1L, periodTicks));
     }
 
     // ===== BukkitRunnable =====

@@ -96,7 +96,7 @@ public final class Transform {
             "java/util/LinkedList",
             new Strategy("wrap", null, "synchronizedList", "Ljava/util/List;", "Collections.synchronizedList"));
 
-    private static final Pattern FOLIA_SUPPORTED = Pattern.compile("(?m)^\\s*folia-supported\\s*:");
+    private static final Pattern FOLIA_SUPPORTED = Pattern.compile("(?m)^folia-supported\\s*:.*$");
     private static final Pattern SIGNATURE_FILE = Pattern.compile("META-INF/[^/]+\\.(SF|RSA|DSA|EC)");
 
     public static Result run(Job job) throws IOException {
@@ -185,7 +185,16 @@ public final class Transform {
                 } else if ((name.equals("plugin.yml") || name.equals("paper-plugin.yml"))
                         && job.setFoliaSupported()) {
                     String yml = new String(bytes, StandardCharsets.UTF_8);
-                    if (!FOLIA_SUPPORTED.matcher(yml).find()) {
+                    java.util.regex.Matcher flag = FOLIA_SUPPORTED.matcher(yml);
+                    if (flag.find()) {
+                        // An explicit `folia-supported: false` must be overwritten,
+                        // or Folia refuses to load the converted jar.
+                        String patched = flag.replaceFirst("folia-supported: true");
+                        if (!patched.equals(yml)) {
+                            bytes = patched.getBytes(StandardCharsets.UTF_8);
+                            pluginYmlPatched = true;
+                        }
+                    } else {
                         yml = yml + (yml.endsWith("\n") ? "" : "\n") + "folia-supported: true\n";
                         bytes = yml.getBytes(StandardCharsets.UTF_8);
                         pluginYmlPatched = true;
