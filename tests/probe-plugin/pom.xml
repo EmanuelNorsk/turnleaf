@@ -15,6 +15,10 @@
   <name>folia-on-demand probe plugin</name>
   <description>Test fixture: a deliberately Folia-INCOMPATIBLE plugin exercising every scheduler API the shim covers, logging proof lines the verify harness asserts</description>
 
+  <properties>
+    <maven.compiler.release>${plugin.java.release}</maven.compiler.release>
+  </properties>
+
   <repositories>
     <repository>
       <id>papermc</id>
@@ -26,7 +30,7 @@
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>1.21.4-R0.1-SNAPSHOT</version>
+      <version>${paper-api.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

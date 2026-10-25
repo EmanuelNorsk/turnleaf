@@ -411,11 +411,42 @@ $("#watch-toggle").addEventListener("click", async () => {
 });
 
 // ---------- update check ----------
+// The desktop app downloads updates itself (the shell's auto-updater) and the
+// pill offers "restart to update". A plain browser — or a release without
+// signed update files — falls back to the GitHub check and the download page.
+const tauriInvoke = window.__TAURI__?.core?.invoke;
+let autoUpdate = { status: "idle" };
+const autoUpdatePending = () => autoUpdate.status === "downloading" || autoUpdate.status === "ready";
+
+async function pollAutoUpdate(startedAt = Date.now()) {
+  if (!tauriInvoke) return;
+  try {
+    autoUpdate = await tauriInvoke("update_status");
+  } catch {
+    return; // older shell without the updater
+  }
+  const pill = $("#update-pill");
+  if (autoUpdate.status === "downloading") {
+    pill.textContent = `downloading v${autoUpdate.version}…`;
+    pill.title = "A new version is downloading in the background";
+    pill.classList.remove("hidden");
+  } else if (autoUpdate.status === "ready") {
+    pill.textContent = `v${autoUpdate.version} ready — restart ↻`;
+    pill.title = "Install now and reopen Turnleaf. Otherwise it installs when you close the app.";
+    pill.classList.remove("hidden");
+    return;
+  }
+  // Keep watching while a download runs; give the launch check a minute.
+  if (autoUpdate.status === "downloading" || Date.now() - startedAt < 60_000) {
+    setTimeout(() => pollAutoUpdate(startedAt), 3000);
+  }
+}
+
 async function checkUpdates(force) {
   try {
     const u = await (await fetch(`/api/update-check${force ? "?force=1" : ""}`)).json();
     $("#app-version").textContent = `Turnleaf v${u.current}`;
-    if (u.hasUpdate) {
+    if (u.hasUpdate && !autoUpdatePending()) {
       const pill = $("#update-pill");
       pill.textContent = `v${u.latest} available ↗`;
       pill.classList.remove("hidden");
@@ -426,14 +457,30 @@ async function checkUpdates(force) {
   }
 }
 
-$("#update-pill").addEventListener("click", () => fetch("/api/open-release", { method: "POST" }));
+$("#update-pill").addEventListener("click", async () => {
+  if (autoUpdate.status === "downloading") return;
+  if (autoUpdate.status === "ready") {
+    $("#update-pill").textContent = "installing…";
+    try {
+      await tauriInvoke("install_update");
+    } catch (e) {
+      alert(`The update could not be installed: ${e}`);
+    }
+    return;
+  }
+  fetch("/api/open-release", { method: "POST" });
+});
 
 $("#check-updates").addEventListener("click", async () => {
   const btn = $("#check-updates");
   btn.textContent = "Checking…";
   const u = await checkUpdates(true);
   btn.textContent = "Check for updates";
-  if (!u || u.error) alert("Could not reach GitHub to check — are you online?");
+  if (autoUpdate.status === "ready") {
+    alert(`Version ${autoUpdate.version} is downloaded.\nClick the pill in the header to restart now, or it installs when you close Turnleaf.`);
+  } else if (autoUpdate.status === "downloading") {
+    alert(`Version ${autoUpdate.version} is downloading — it will be ready in a moment.`);
+  } else if (!u || u.error) alert("Could not reach GitHub to check — are you online?");
   else if (u.disabled) alert("Update checking isn't configured for this build.");
   else if (u.hasUpdate) alert(`Version ${u.latest} is available (you have ${u.current}).\nClick the blue pill in the header to open the download page.`);
   else alert(`You're up to date (v${u.current}).`);
@@ -1009,3 +1056,4 @@ loadStatus().then((s) => {
 });
 loadJars();
 checkUpdates(false);
+pollAutoUpdate();

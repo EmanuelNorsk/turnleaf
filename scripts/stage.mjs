@@ -9,6 +9,7 @@
 //     engine/target/engine.jar            ASM engine daemon
 //     shim-runtime/target/shim-runtime.jar
 //     tools/vineflower.jar
+//     tools/dependency-versions.json      versions fetch-tools resolved for this build
 //     tools/paper-libs/*.jar              Tier 3 compile-gate classpath
 //     tools/paper-classpath.txt           entries relative to tools/
 //     src/rules/*.json
@@ -45,6 +46,7 @@ copy(path.join("dist", "folia.cjs"));
 copy(path.join("engine", "target", "engine.jar"));
 copy(path.join("shim-runtime", "target", "shim-runtime.jar"));
 copy(path.join("tools", "vineflower.jar"));
+copy(path.join("tools", "dependency-versions.json"));
 copy(path.join("src", "rules"));
 copy(path.join("src", "gui", "public"));
 

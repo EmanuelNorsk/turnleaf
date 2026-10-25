@@ -61,8 +61,11 @@
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>1.21.4-R0.1-SNAPSHOT</version>
+      <version>26.3.build.218-stable</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
+  <properties>
+    <maven.compiler.release>${plugin.java.release}</maven.compiler.release>
+  </properties>
 </project>

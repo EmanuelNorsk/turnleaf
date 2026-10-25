@@ -38,6 +38,8 @@ Download the installer from [Releases](../../releases), run it, done. It's a sma
 
 Installers are built automatically from this repository's source by GitHub Actions — every release links to the exact build run, so you can verify what you're running.
 
+**It keeps itself up to date.** The app checks for a new release when it starts and downloads it in the background. Click the **ready — restart** pill in the header to install it right away, or just keep working — it installs when you close the app. Updates are signed, and the app refuses any download whose signature doesn't match. New releases also come out automatically whenever one of Turnleaf's dependencies (ASM, the Paper API, FoliaLib, …) ships a new version, but only after the update has been built, tested, and boot-tested on the newest Folia.
+
 > **"Windows protected your PC"?** The installer isn't code-signed (certificates cost hundreds of dollars a year — not happening for a free tool). Click **More info → Run anyway**. If that makes you uncomfortable — fair! — use Option 2 below and run it from source, or build the installer yourself with Option 3; it's the same code either way.
 
 The app needs two things installed on your PC (both free, you likely have them already):
@@ -45,19 +47,21 @@ The app needs two things installed on your PC (both free, you likely have them a
 | You need | Why | Get it |
 |---|---|---|
 | **Node.js 20+** | runs the converter | [nodejs.org](https://nodejs.org) |
-| **Java 21+** | reads and rewrites the jar | [adoptium.net](https://adoptium.net) |
+| **Java 25+** | reads and rewrites the jar | [adoptium.net](https://adoptium.net) |
 
 ### Option 2 — Run from source (if you don't trust exes — fair!)
 
-Everything the app does, you can do from a terminal. You need **Node.js 20+**, **Java (JDK) 21+**, and **Maven**:
+Everything the app does, you can do from a terminal. You need **Node.js 20+**, **Java (JDK) 25+**, and **Maven**:
 
 ```sh
 git clone https://github.com/EmanuelNorsk/turnleaf
 cd turnleaf
 npm install                    # installs the TypeScript side
-node scripts/fetch-tools.mjs   # downloads the decompiler + compile classpath (one time)
-mvn package                    # builds the Java engine (one time)
+node scripts/fetch-tools.mjs   # resolves the latest dependency versions + downloads tools
+mvn package                    # builds the Java engine
 ```
+
+To move to newer dependency releases later, re-run the last two commands — `fetch-tools` always picks the newest stable version of everything (ASM, Paper API, FoliaLib, Vineflower, Jackson, Maven plugins). The versions it chose are written to `.mvn/maven.config` and `tools/dependency-versions.json`.
 
 Then either open the same dashboard the app uses, in your browser:
 

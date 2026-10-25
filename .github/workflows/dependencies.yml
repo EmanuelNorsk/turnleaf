@@ -1,0 +1,118 @@
+# Keeps releases on the newest dependencies without anyone lifting a finger.
+#
+# Daily: resolve the latest stable version of every dependency (fetch-tools).
+# Nothing changed → stop. Something changed → build, typecheck, unit-test, and
+# boot the probe plugin on the newest Folia. Only if all of that passes is the
+# version bumped (patch), committed with the new .mvn/maven.config, tagged,
+# and handed to release.yml — whose installers the apps then auto-update to.
+#
+# A failing run means an upstream release broke something: nothing is
+# published, and GitHub emails the repo owner. Hold that dependency back with
+# PINS in scripts/fetch-tools.mjs until it's fixed.
+name: Dependency updates
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: dependency-updates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Resolve latest dependency versions
+        run: node scripts/fetch-tools.mjs
+
+      - name: Anything new?
+        id: diff
+        run: |
+          if git diff --quiet -- .mvn/maven.config; then
+            echo "Every dependency is already on its latest stable release."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            changes=$(git diff -U0 -- .mvn/maven.config | grep '^+-D' | sed 's/^+-D//; s/\.version=/ → /' | paste -sd ',' | sed 's/,/, /g')
+            echo "Updated: $changes"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "changes=$changes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Java engine + shim runtime
+        if: steps.diff.outputs.changed == 'true'
+        run: mvn -q package
+
+      - name: Typecheck
+        if: steps.diff.outputs.changed == 'true'
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        if: steps.diff.outputs.changed == 'true'
+        run: npm test
+
+      - name: Download the newest Folia
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          version=$(curl -fsS https://fill.papermc.io/v3/projects/folia | jq -r '.versions | to_entries[0].value[0]')
+          build=$(curl -fsS "https://fill.papermc.io/v3/projects/folia/versions/$version/builds/latest")
+          name=$(jq -r '.downloads["server:default"].name' <<< "$build")
+          mkdir -p folia
+          curl -fsSLo "folia/$name" "$(jq -r '.downloads["server:default"].url' <<< "$build")"
+          echo "$(jq -r '.downloads["server:default"].checksums.sha256' <<< "$build")  folia/$name" | sha256sum -c
+          echo "Boot-testing on $name"
+
+      - name: Convert + boot the probe plugin
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          npm run cli -- convert tests/probe-plugin/target/probe-plugin.jar
+          npm run cli -- verify out/probe-plugin-folia.jar --expect \
+            "probe: runTask OK" \
+            "probe: runTaskLater OK" \
+            "probe: runTaskAsynchronously OK" \
+            "probe: scheduleSyncDelayedTask OK" \
+            "probe: timer cancelled OK"
+
+      - name: Bump version, commit, tag
+        if: steps.diff.outputs.changed == 'true'
+        id: release
+        env:
+          CHANGES: ${{ steps.diff.outputs.changes }}
+        run: |
+          version=$(node scripts/bump-version.mjs patch)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .mvn/maven.config package.json package-lock.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
+          git commit -m "Turnleaf $version — dependency updates" -m "$CHANGES"
+          git tag "v$version"
+          git push origin HEAD:master "v$version"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      # Tags pushed with GITHUB_TOKEN don't trigger workflows; a dispatch does.
+      - name: Start the release build
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release.yml --ref "${{ steps.release.outputs.tag }}"

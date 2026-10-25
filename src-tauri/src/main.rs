@@ -9,12 +9,82 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use tauri::{Manager, RunEvent};
+use tauri::{AppHandle, Manager, RunEvent};
+use tauri_plugin_updater::{Update, UpdaterExt};
 
 const PORT: u16 = 4646;
 
 /// Holds the spawned Node GUI-server process so we can kill it on exit.
 struct Server(Mutex<Option<Child>>);
+
+/// Auto-update progress: checked and downloaded in the background at launch,
+/// installed when the user clicks "restart to update" or closes the app.
+#[derive(Default)]
+struct PendingUpdate(Mutex<UpdateState>);
+
+#[derive(Default)]
+struct UpdateState {
+    /// "idle" | "downloading" | "ready"
+    status: &'static str,
+    version: Option<String>,
+    ready: Option<(Update, Vec<u8>)>,
+}
+
+/// Check the release feed and, if there's a newer version, download and
+/// verify it. Errors (offline, no signed release yet) just leave it idle.
+async fn fetch_update(app: AppHandle) -> tauri_plugin_updater::Result<()> {
+    let Some(update) = app.updater()?.check().await? else {
+        return Ok(());
+    };
+    let pending = app.state::<PendingUpdate>();
+    {
+        let mut s = pending.0.lock().unwrap();
+        s.status = "downloading";
+        s.version = Some(update.version.clone());
+    }
+    let bytes = match update.download(|_, _| {}, || {}).await {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            pending.0.lock().unwrap().status = "idle";
+            return Err(e);
+        }
+    };
+    let mut s = pending.0.lock().unwrap();
+    s.status = "ready";
+    s.ready = Some((update, bytes));
+    Ok(())
+}
+
+/// Install a downloaded update. Stops the Node server first so the new
+/// version starts a fresh one. On Windows the installer takes over and this
+/// process exits; elsewhere the files are swapped in place.
+fn install_pending(app: &AppHandle, restart: bool) -> Result<(), String> {
+    let Some((update, bytes)) = app.state::<PendingUpdate>().0.lock().unwrap().ready.take() else {
+        return Err("no update has been downloaded".into());
+    };
+    if let Some(mut child) = app.state::<Server>().0.lock().unwrap().take() {
+        let _ = child.kill();
+    }
+    update
+        .restart_after_install(restart)
+        .install(bytes)
+        .map_err(|e| e.to_string())?;
+    if restart {
+        app.restart();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn update_status(state: tauri::State<PendingUpdate>) -> serde_json::Value {
+    let s = state.0.lock().unwrap();
+    serde_json::json!({ "status": if s.status.is_empty() { "idle" } else { s.status }, "version": s.version })
+}
+
+#[tauri::command]
+fn install_update(app: AppHandle) -> Result<(), String> {
+    install_pending(&app, true)
+}
 
 /// Walk up from the executable's directory until we find the project root
 /// (the folder containing package.json and src/cli.ts) — dev mode only.
@@ -168,9 +238,23 @@ fn spawn_packaged_server(app_home: &Path) -> std::io::Result<Child> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Server(Mutex::new(None)))
+        .manage(PendingUpdate::default())
+        .invoke_handler(tauri::generate_handler![update_status, install_update])
         .setup(move |app| {
             let handle = app.handle().clone();
+
+            // Installed builds look for a newer release in the background;
+            // dev runs (`npm run app`) never update themselves.
+            if find_project_root().is_none() {
+                let updater_handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = fetch_update(updater_handle).await {
+                        eprintln!("update check failed: {e}");
+                    }
+                });
+            }
 
             // If a server is already on the port, reuse it only when it's the
             // same app version — a leftover from before an update is told to
@@ -226,8 +310,14 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while building the app")
         .run(|app, event| {
-            // Kill the Node server when the app is exiting.
+            // Kill the Node server when the app is exiting — and if an update
+            // finished downloading, install it now (without reopening the app).
             if let RunEvent::ExitRequested { .. } = event {
+                if app.state::<PendingUpdate>().0.lock().unwrap().ready.is_some() {
+                    if let Err(e) = install_pending(app, false) {
+                        eprintln!("update install failed: {e}");
+                    }
+                }
                 if let Some(mut child) = app.state::<Server>().0.lock().unwrap().take() {
                     let _ = child.kill();
                 }

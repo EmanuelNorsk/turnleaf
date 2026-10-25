@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { RULES_DIR, SHIM_JAR } from "../env.js";
+import { RULES_DIR, SHIM_JAR, TOOLS_DIR } from "../env.js";
 
 /**
  * Identity of the conversion pipeline: hash of everything that determines what
@@ -26,6 +26,16 @@ export function pipelineHash(): string {
   }
   cached = h.digest("hex").slice(0, 16);
   return cached;
+}
+
+/** A dependency version fetch-tools resolved for this build (tools/dependency-versions.json). */
+export function dependencyVersion(name: string): string {
+  try {
+    const versions = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, "dependency-versions.json"), "utf8")) as Record<string, string>;
+    return versions[`${name}.version`] ?? "unknown";
+  } catch {
+    return "unknown";
+  }
 }
 
 export function sha256File(file: string): string {

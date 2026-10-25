@@ -6,7 +6,7 @@ import { loadCatalog, parsePluginMeta, scan } from "../scan/scanner.js";
 import type { CollectionFixSpec, ConvertOutcome, Tier3Target, TransformJob } from "../types.js";
 import { OUT_DIR, SHIM_JAR, VERSION } from "../env.js";
 import { buildRedirects, buildStaticRedirects } from "./redirects.js";
-import { pipelineHash, sha256File } from "./pipeline.js";
+import { dependencyVersion, pipelineHash, sha256File } from "./pipeline.js";
 
 const FIXABLE_IFACE_DESCS = new Set(["Ljava/util/Map;", "Ljava/util/Set;", "Ljava/util/List;"]);
 
@@ -95,7 +95,7 @@ export async function convert(jarPath: string, options: ConvertOptions = {}): Pr
       "original-name": path.basename(jarPath),
       "original-sha256": sha256File(jarPath),
       "converted-at": new Date().toISOString(),
-      "folialib": "0.5.2",
+      "folialib": dependencyVersion("folialib"),
       "tier2-fixes": String(options.t2 !== false),
       "shim-package": targetPrefix.replaceAll("/", "."),
     },

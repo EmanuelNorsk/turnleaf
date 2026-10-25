@@ -3,9 +3,15 @@
 #
 #   - Push a tag like v0.4.0  → builds all three and publishes the release.
 #   - Manual run (workflow_dispatch) → builds and uploads them as workflow
-#     artifacts, so the pipeline can be tested without tagging.
+#     artifacts, so the pipeline can be tested without tagging. Dispatched on
+#     a tag ref (what dependencies.yml does), it publishes like a tag push.
 #
-# Each runner does what a contributor would: Node, JDK 21, Maven, Rust —
+# Auto-update: when the TAURI_SIGNING_PRIVATE_KEY (+ _PASSWORD) secrets are
+# set, the installers are signed and the release gets a latest.json, which the
+# installed apps poll to update themselves. Without the secrets the release
+# still builds — installed apps just won't auto-update to it.
+#
+# Each runner does what a contributor would: Node, JDK 25, Maven, Rust —
 # provided or preinstalled. tools/ is gitignored, so scripts/fetch-tools.mjs
 # recreates it (Vineflower + compile-gate classpath).
 name: Release
@@ -26,15 +32,22 @@ jobs:
         include:
           - os: windows-latest
             bundles: nsis
-            artifacts: src-tauri/target/release/bundle/nsis/*-setup.exe
+            artifacts: |
+              src-tauri/target/release/bundle/nsis/*-setup.exe
+              src-tauri/target/release/bundle/nsis/*-setup.exe.sig
           - os: ubuntu-latest
             bundles: deb,appimage
             artifacts: |
               src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/deb/*.deb.sig
               src-tauri/target/release/bundle/appimage/*.AppImage
+              src-tauri/target/release/bundle/appimage/*.AppImage.sig
           - os: macos-latest
-            bundles: dmg
-            artifacts: src-tauri/target/release/bundle/dmg/*.dmg
+            bundles: app,dmg
+            artifacts: |
+              src-tauri/target/release/bundle/dmg/*.dmg
+              src-tauri/target/release/bundle/macos/*.app.tar.gz
+              src-tauri/target/release/bundle/macos/*.app.tar.gz.sig
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -47,7 +60,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
           cache: maven
 
       - uses: Swatinem/rust-cache@v2
@@ -86,7 +99,18 @@ jobs:
         run: npm test
 
       - name: Build the app (stage + Tauri + installer)
-        run: npm run app:build -- --bundles ${{ matrix.bundles }}
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          updater=()
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            updater=(--config src-tauri/tauri.updater.conf.json)
+          else
+            echo "::warning::TAURI_SIGNING_PRIVATE_KEY is not set — building without auto-update files"
+          fi
+          npm run app:build -- --bundles ${{ matrix.bundles }} "${updater[@]}"
 
       - uses: actions/upload-artifact@v6
         with:
@@ -101,13 +125,24 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
       - uses: actions/download-artifact@v7
         with:
           path: installers
           merge-multiple: true
 
+      - name: Write the auto-update feed (latest.json)
+        run: node scripts/updater-manifest.mjs installers --tag "${{ github.ref_name }}" --repo "${{ github.repository }}"
+
       - name: Publish release with installers
         uses: softprops/action-gh-release@v2
         with:
-          files: installers/**
+          files: |
+            installers/**/*.exe
+            installers/**/*.deb
+            installers/**/*.AppImage
+            installers/**/*.dmg
+            installers/**/*.app.tar.gz
+            installers/latest.json
           generate_release_notes: true

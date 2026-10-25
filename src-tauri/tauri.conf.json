@@ -40,5 +40,14 @@
     "resources": {
       "../dist/home": "home"
     }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNENDUyMDg1RTE3MTc2MkQKUldRdGRuSGhoU0JGUGF1ZzZacnIrU2hsblpzUjNlQkp2djZJM1FBRGlmekQ3Q2poMGJqV25tUkgK",
+      "endpoints": ["https://github.com/EmanuelNorsk/turnleaf/releases/latest/download/latest.json"],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

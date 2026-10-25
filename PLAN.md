@@ -165,7 +165,7 @@ folia-on-demand/
 ├── shim-runtime/           Java — the safety layer injected into converted jars
 ├── src-tauri/              Rust — thin desktop shell around the local server
 ├── scripts/                fetch-tools, esbuild bundle, app staging
-├── .github/workflows/      3-OS release build (Windows / Linux / macOS)
+├── .github/workflows/      3-OS release build + daily dependency-update release
 ├── tests/                  plugin corpus + probe-plugin regression fixture
 └── tools/, folia/, out/…   fetched tools and working dirs (gitignored)
 ```
@@ -173,9 +173,25 @@ folia-on-demand/
 ## Building and releasing
 
 Dev setup is three commands: `npm install`, `node scripts/fetch-tools.mjs`
-(downloads Vineflower and generates the compile classpath — `tools/` is
-gitignored), `mvn package` (builds the two Java modules). Then `npm run cli
--- gui` for the dashboard or `npm run app` for the desktop shell.
+(resolves dependency versions, downloads Vineflower and generates the compile
+classpath — `tools/` is gitignored), `mvn package` (builds the two Java
+modules). Then `npm run cli -- gui` for the dashboard or `npm run app` for the
+desktop shell. Building needs JDK 25+.
+
+**Dependencies float to their latest stable release.** The versions in
+`pom.xml` are offline fallbacks only: `fetch-tools` looks up the newest stable
+ASM, Jackson, Paper API, FoliaLib, Vineflower, and Maven plugins and writes
+them to `.mvn/maven.config` as `-D` overrides, which Maven applies to every
+build. CI runs it before each release, so every release is built against
+current dependencies; the exact versions are recorded in
+`tools/dependency-versions.json` and shipped with the app. If an upstream
+release breaks the build, hold it back with an entry in `PINS` at the top of
+`scripts/fetch-tools.mjs`. Maven plugins are capped at 3.x (4.x needs Maven 4).
+
+**Two Java levels.** Turnleaf's own engine is compiled for Java 25. The shim
+injected into converted plugins (and the AI-fix compile gate) still targets
+Java 21 bytecode, so a converted jar keeps loading on older servers running
+Java 21 — compiling against the newest Paper API doesn't change that.
 
 The desktop app is packaged self-contained: `scripts/stage.mjs` bundles the
 whole TypeScript side into one file (no `node_modules` at runtime) and stages
@@ -185,8 +201,28 @@ an installer. End users need only Node.js and Java.
 Releases are built by CI: push a `vX.Y.Z` tag (matching `package.json` —
 a guard fails the build otherwise) and GitHub Actions produces the Windows
 installer, Linux deb + AppImage, and macOS dmg, attached to the release
-automatically. Version bumps touch `package.json`, `src-tauri/tauri.conf.json`,
-and `src-tauri/Cargo.toml`.
+automatically. `node scripts/bump-version.mjs patch` (or `minor`, `major`,
+`x.y.z`) sets the version in every file that carries it.
+
+**Dependency releases are automatic.** `.github/workflows/dependencies.yml`
+runs daily: it re-resolves dependency versions, and if any changed it builds,
+typechecks, unit-tests, converts the probe plugin and boot-tests it on the
+newest Folia. Only when all of that passes does it bump the patch version,
+commit the new `.mvn/maven.config`, tag, and start the release build. A failed
+run publishes nothing (GitHub emails the repo owner) — pin the offending
+dependency in `fetch-tools` until it's sorted.
+
+**Installed apps update themselves** via the Tauri updater plugin: at launch
+the shell (`src-tauri/src/main.rs`) reads
+`releases/latest/download/latest.json`, downloads the installer for its
+platform in the background, verifies its signature against the public key in
+`tauri.conf.json`, and installs it on "restart to update" or when the app
+closes. CI signs the installers and writes `latest.json`
+(`scripts/updater-manifest.mjs`) only when the `TAURI_SIGNING_PRIVATE_KEY` and
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` repository secrets are set; without them
+a release still builds, it just isn't offered as an auto-update. **The private
+key can't be replaced**: installed apps only trust updates signed with it, so
+losing it means every user has to reinstall manually once.
 
 ## Reference material
 

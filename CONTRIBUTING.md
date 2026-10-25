@@ -23,11 +23,11 @@ don't shim yet, and one new shim fixes it for every plugin at once.
 
 ## 3. Code
 
-Dev setup (Windows/Linux/macOS — you need Node 20+, JDK 21+, Maven):
+Dev setup (Windows/Linux/macOS — you need Node 20+, JDK 25+, Maven):
 
 ```sh
 npm install                    # TypeScript side
-node scripts/fetch-tools.mjs   # decompiler + compile classpath (tools/ is gitignored)
+node scripts/fetch-tools.mjs   # latest dependency versions, decompiler, compile classpath
 mvn package                    # the two Java modules (engine + shim runtime)
 ```
 
