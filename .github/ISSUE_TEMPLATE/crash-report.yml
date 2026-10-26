@@ -27,7 +27,7 @@ body:
   - type: input
     id: app
     attributes:
-      label: folia-on-demand version
+      label: Turnleaf version
       description: Shown in the app header, or `npm run cli -- --version`
       placeholder: "e.g. 0.6.1"
     validations:

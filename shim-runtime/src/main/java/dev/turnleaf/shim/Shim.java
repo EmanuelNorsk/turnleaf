@@ -1,4 +1,4 @@
-package dev.foliaondemand.shim;
+package dev.turnleaf.shim;
 
 import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;

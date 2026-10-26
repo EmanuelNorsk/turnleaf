@@ -1,4 +1,4 @@
-package dev.foliaondemand.shim;
+package dev.turnleaf.shim;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

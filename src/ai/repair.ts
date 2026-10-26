@@ -72,7 +72,9 @@ export interface RepairOutcome {
 }
 
 /** Frames from injected shim classes are ours — never patch targets. */
-const isShimClass = (cls: string) => cls.includes("foliaondemand") || cls.includes("foliashim");
+// "foliaondemand" covers jars converted before the project was renamed.
+const isShimClass = (cls: string) =>
+  cls.includes("foliashim") || cls.includes("dev.turnleaf.") || cls.includes("foliaondemand");
 
 /** Lines that describe environment problems the AI must not "fix" in code. */
 const NOT_A_CODE_BUG = /UnknownDependencyException|missing dependency|Please download and install/i;

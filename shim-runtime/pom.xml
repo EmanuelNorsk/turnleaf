@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>dev.foliaondemand</groupId>
-    <artifactId>folia-on-demand-parent</artifactId>
+    <groupId>dev.turnleaf</groupId>
+    <artifactId>turnleaf-parent</artifactId>
     <version>0.1.0</version>
   </parent>
 
   <artifactId>shim-runtime</artifactId>
-  <name>folia-on-demand shim runtime</name>
+  <name>Turnleaf shim runtime</name>
   <description>Runtime injected (relocated) into converted plugins: static redirect targets backed by FoliaLib</description>
 
   <properties>
@@ -58,14 +58,14 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>dev.foliaondemand:shim-runtime</include>
+                  <include>dev.turnleaf:shim-runtime</include>
                   <include>com.tcoded:FoliaLib</include>
                 </includes>
               </artifactSet>
               <relocations>
                 <relocation>
                   <pattern>com.tcoded.folialib</pattern>
-                  <shadedPattern>dev.foliaondemand.shim.lib.folialib</shadedPattern>
+                  <shadedPattern>dev.turnleaf.shim.lib.folialib</shadedPattern>
                 </relocation>
               </relocations>
               <filters>

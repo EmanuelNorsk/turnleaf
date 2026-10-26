@@ -10,14 +10,14 @@ import { dependencyVersion, pipelineHash, sha256File } from "./pipeline.js";
 
 const FIXABLE_IFACE_DESCS = new Set(["Ljava/util/Map;", "Ljava/util/Set;", "Ljava/util/List;"]);
 
-const SHIM_PREFIX = "dev/foliaondemand/shim";
+const SHIM_PREFIX = "dev/turnleaf/shim";
 
 function relocationTarget(mainClass: string | undefined): string {
   if (mainClass && mainClass.includes(".")) {
     const pkg = mainClass.slice(0, mainClass.lastIndexOf(".")).replaceAll(".", "/");
     return `${pkg}/foliashim`;
   }
-  return "foliaondemand/injected/foliashim";
+  return "turnleaf/injected/foliashim";
 }
 
 export interface ConvertOptions {
@@ -41,8 +41,8 @@ export async function convert(jarPath: string, options: ConvertOptions = {}): Pr
 
   // Build the redirect table from the shim jar's own signatures.
   const shimIndex = await indexJar(SHIM_JAR);
-  const shim = buildRedirects(shimIndex, index, `${targetPrefix}/Shim`, "dev/foliaondemand/shim/Shim");
-  const generated = buildRedirects(shimIndex, index, `${targetPrefix}/ShimGenerated`, "dev/foliaondemand/shim/ShimGenerated");
+  const shim = buildRedirects(shimIndex, index, `${targetPrefix}/Shim`, "dev/turnleaf/shim/Shim");
+  const generated = buildRedirects(shimIndex, index, `${targetPrefix}/ShimGenerated`, "dev/turnleaf/shim/ShimGenerated");
   const redirects = [...shim.redirects, ...generated.redirects, ...buildStaticRedirects(`${targetPrefix}/ShimStatic`)];
   const skipped = [...shim.skipped, ...generated.skipped];
 

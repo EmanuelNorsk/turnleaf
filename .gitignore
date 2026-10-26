@@ -12,7 +12,7 @@ src-tauri/gen/
 # Fetched tools & local-only artifacts
 tools/
 folia/
-resources/
+/resources/
 reports/
 
 # Plugin jars — paid/third-party, never publish (probe-plugin *source* stays tracked)

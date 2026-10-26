@@ -137,7 +137,7 @@ npm run cli -- migrate C:\my-server        # convert a whole server's plugins fo
 
 - **Test before production.** A converted plugin loading cleanly is guaranteed; every gameplay feature behaving identically under multithreading is something only your test server can confirm. The reports tell you exactly where to look.
 - **Your gameplay logic is not touched.** The converter redirects *scheduling and threading* calls. It does not "optimize", reorder, or reinterpret what your plugin does.
-- **Converted jars are stamped.** Each one carries a `folia-on-demand.properties` file recording what was changed, so a converted build can never be mistaken for the original.
+- **Converted jars are stamped.** Each one carries a `turnleaf.properties` file recording what was changed, so a converted build can never be mistaken for the original.
 - **Respect plugin licenses.** Convert plugins for your own server. Don't redistribute converted jars of plugins you don't own.
 
 ## For contributors

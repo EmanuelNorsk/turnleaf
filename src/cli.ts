@@ -367,7 +367,7 @@ program
     const { generateShim } = await import("./convert/generateShim.js");
     const paperApi = await indexJar(paperApiJar);
     const gen = generateShim(result, paperApi);
-    const genOut = path.join(root, "shim-runtime", "src", "main", "java", "dev", "foliaondemand", "shim", "ShimGenerated.java");
+    const genOut = path.join(root, "shim-runtime", "src", "main", "java", "dev", "turnleaf", "shim", "ShimGenerated.java");
     fs.writeFileSync(genOut, gen.source);
     console.log(`Generated ${gen.count} entity-mutator shims (${gen.skipped} skipped — not in the compiled paper-api).`);
     console.log(`Shim source written: ${path.relative(root, genOut)}  → rebuild with: mvn package`);

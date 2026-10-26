@@ -1,0 +1,5 @@
+name: TestProbe
+version: '0.1.0'
+main: dev.turnleaf.probe.ProbePlugin
+api-version: '1.21'
+description: folia-on-demand verification probe

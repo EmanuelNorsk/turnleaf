@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>folia-on-demand-parent</artifactId>
-    <groupId>dev.foliaondemand</groupId>
+    <artifactId>turnleaf-parent</artifactId>
+    <groupId>dev.turnleaf</groupId>
     <version>0.1.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>engine</artifactId>
-  <name>folia-on-demand engine</name>
+  <name>Turnleaf engine</name>
   <description>ASM bytecode scanner/transformer driven by the TypeScript orchestrator via a JSON protocol</description>
   <build>
     <finalName>engine</finalName>
@@ -23,7 +23,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>dev.foliaondemand.engine.Main</mainClass>
+                  <mainClass>dev.turnleaf.engine.Main</mainClass>
                 </transformer>
               </transformers>
             </configuration>

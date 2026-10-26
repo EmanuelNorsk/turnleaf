@@ -43,7 +43,7 @@ export function buildRedirects(
   shimIndex: EngineIndex,
   pluginIndex: EngineIndex,
   relocatedShimOwner: string,
-  shimClassInternal = "dev/foliaondemand/shim/Shim",
+  shimClassInternal = "dev/turnleaf/shim/Shim",
 ): { redirects: RedirectSpec[]; skipped: string[] } {
   const shimClass = shimIndex.classes.find((c) => c.name === shimClassInternal);
   // ShimGenerated may be absent (never mined) — that's fine, no extra redirects.

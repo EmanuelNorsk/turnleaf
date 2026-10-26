@@ -1,4 +1,4 @@
-package dev.foliaondemand.shim;
+package dev.turnleaf.shim;
 
 import com.tcoded.folialib.wrapper.task.WrappedTask;
 import org.bukkit.plugin.Plugin;

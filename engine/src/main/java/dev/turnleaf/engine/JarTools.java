@@ -1,4 +1,4 @@
-package dev.foliaondemand.engine;
+package dev.turnleaf.engine;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +17,11 @@ import java.util.zip.ZipEntry;
 
 /** Small jar utilities for the Tier 3 pipeline: class extraction and class replacement. */
 public final class JarTools {
+
+    /** Audit stamp written into every converted jar. */
+    public static final String STAMP = "turnleaf.properties";
+    /** The stamp's name before the project was renamed — still read, so older conversions are recognized. */
+    public static final String LEGACY_STAMP = "folia-on-demand.properties";
 
     public record ExtractResult(int extracted, List<String> files) {
     }
@@ -76,7 +81,10 @@ public final class JarTools {
                 if (entry != null) {
                     yml = readEntry(in, entry);
                 }
-                JarEntry stamp = in.getJarEntry("folia-on-demand.properties");
+                JarEntry stamp = in.getJarEntry(STAMP);
+                if (stamp == null) {
+                    stamp = in.getJarEntry(LEGACY_STAMP);
+                }
                 if (stamp != null) {
                     properties = readEntry(in, stamp);
                 }

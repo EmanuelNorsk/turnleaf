@@ -220,7 +220,7 @@ fn spawn_dev_server(root: &Path) -> std::io::Result<Child> {
     .spawn()
 }
 
-/// Packaged: `node <home>/dist/folia.cjs gui` with FOD_HOME/FOD_BUNDLE set so
+/// Packaged: `node <home>/dist/folia.cjs gui` with TURNLEAF_HOME/TURNLEAF_BUNDLE set so
 /// the server and every job it spawns resolve all paths inside the app home.
 fn spawn_packaged_server(app_home: &Path) -> std::io::Result<Child> {
     let bundle = app_home.join("dist").join("folia.cjs");
@@ -230,8 +230,8 @@ fn spawn_packaged_server(app_home: &Path) -> std::io::Result<Child> {
             .args(["gui", "--no-open", "--port"])
             .arg(PORT.to_string())
             .current_dir(app_home)
-            .env("FOD_HOME", app_home)
-            .env("FOD_BUNDLE", &bundle),
+            .env("TURNLEAF_HOME", app_home)
+            .env("TURNLEAF_BUNDLE", &bundle),
     )
     .spawn()
 }

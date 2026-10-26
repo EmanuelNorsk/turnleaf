@@ -26,16 +26,16 @@ await esbuild.build({
   logLevel: "info",
   legalComments: "none",
   // CJS has no import.meta, so map `import.meta.url` to a __filename-based file
-  // URL declared in the banner. This keeps src/env.ts's dev fallback (FOD_HOME
+  // URL declared in the banner. This keeps src/env.ts's dev fallback (TURNLEAF_HOME
   // unset) resolving the app root from the bundle's own location.
   define: {
-    "import.meta.url": "__fodBundleUrl",
+    "import.meta.url": "__turnleafBundleUrl",
     // The packaged app has no package.json, so bake version + repo slug in
     // (used by the GUI's update check against GitHub Releases).
-    __FOD_PKG_VERSION__: JSON.stringify(pkg.version),
-    __FOD_PKG_REPO__: JSON.stringify(repo),
+    __TURNLEAF_PKG_VERSION__: JSON.stringify(pkg.version),
+    __TURNLEAF_PKG_REPO__: JSON.stringify(repo),
   },
   banner: {
-    js: "const __fodBundleUrl = require('url').pathToFileURL(__filename).href;",
+    js: "const __turnleafBundleUrl = require('url').pathToFileURL(__filename).href;",
   },
 });

@@ -176,7 +176,7 @@ export interface TransformJob {
   relocation: { fromPrefix: string; toPrefix: string };
   setFoliaSupported: boolean;
   collectionFixes: CollectionFixSpec[];
-  /** Written into the jar as folia-on-demand.properties (audit trail). */
+  /** Written into the jar as turnleaf.properties (audit trail). */
   stamp: Record<string, string> | null;
 }
 

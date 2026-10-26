@@ -151,7 +151,7 @@ Design decisions that matter:
 ## Repository layout
 
 ```
-folia-on-demand/
+turnleaf/
 ├── src/                    TypeScript — everything you'd normally touch
 │   ├── cli.ts                 command-line entry (scan/convert/verify/ai/repair/migrate/gui)
 │   ├── convert/               the rewrite pipeline, manifest, server migration

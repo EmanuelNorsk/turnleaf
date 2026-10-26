@@ -5,14 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>dev.foliaondemand</groupId>
-    <artifactId>folia-on-demand-parent</artifactId>
+    <groupId>dev.turnleaf</groupId>
+    <artifactId>turnleaf-parent</artifactId>
     <version>0.1.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>probe-plugin</artifactId>
-  <name>folia-on-demand probe plugin</name>
+  <name>Turnleaf probe plugin</name>
   <description>Test fixture: a deliberately Folia-INCOMPATIBLE plugin exercising every scheduler API the shim covers, logging proof lines the verify harness asserts</description>
 
   <properties>

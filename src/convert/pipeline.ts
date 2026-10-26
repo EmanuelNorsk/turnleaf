@@ -42,7 +42,7 @@ export function sha256File(file: string): string {
   return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 }
 
-/** Parse the key=value lines of a jar's folia-on-demand.properties stamp. */
+/** Parse the key=value lines of a jar's turnleaf.properties stamp. */
 export function parseStamp(text: string | null): Record<string, string> | null {
   if (!text) return null;
   const out: Record<string, string> = {};

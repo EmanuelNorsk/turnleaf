@@ -243,7 +243,7 @@ function psDialog(scriptLines: string[], env: Record<string, string>): Promise<s
     ...scriptLines,
     "$owner.Close(); $owner.Dispose()",
   ].join("\n");
-  const tmp = path.join(os.tmpdir(), `fod-pick-${process.pid}-${Date.now()}.ps1`);
+  const tmp = path.join(os.tmpdir(), `turnleaf-pick-${process.pid}-${Date.now()}.ps1`);
   fs.writeFileSync(tmp, script);
   return new Promise((resolve, reject) => {
     execFile(
@@ -590,7 +590,7 @@ export async function startGui(port: number, openBrowser: boolean): Promise<void
         res.status(400).json({ error: "bad jar paths or class name" });
         return;
       }
-      const work = path.join(os.tmpdir(), `fod-diff-${Date.now()}`);
+      const work = path.join(os.tmpdir(), `turnleaf-diff-${Date.now()}`);
       const sides: Record<string, string> = {};
       for (const [label, jar] of [["before", orig], ["after", conv]] as const) {
         const classesDir = path.join(work, label, "classes");
@@ -781,11 +781,11 @@ export async function startGui(port: number, openBrowser: boolean): Promise<void
           "$dlg = New-Object System.Windows.Forms.OpenFileDialog",
           "$dlg.Title = 'Choose your Folia server jar'",
           "$dlg.Filter = 'Server jar (*.jar)|*.jar'",
-          "if ($env:FOD_START) { $dlg.InitialDirectory = $env:FOD_START }",
+          "if ($env:TURNLEAF_START) { $dlg.InitialDirectory = $env:TURNLEAF_START }",
           "$res = $dlg.ShowDialog($owner)",
           "if ($res -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($dlg.FileName) }",
         ],
-        { FOD_START: path.join(os.homedir(), "Downloads") },
+        { TURNLEAF_START: path.join(os.homedir(), "Downloads") },
       );
       if (!picked) {
         res.json({ cancelled: true });
@@ -832,11 +832,11 @@ export async function startGui(port: number, openBrowser: boolean): Promise<void
           "$dlg = New-Object System.Windows.Forms.FolderBrowserDialog",
           "$dlg.Description = 'Choose the output folder for the converted plugin'",
           "$dlg.ShowNewFolderButton = $true",
-          "if ($env:FOD_START) { $dlg.SelectedPath = $env:FOD_START }",
+          "if ($env:TURNLEAF_START) { $dlg.SelectedPath = $env:TURNLEAF_START }",
           "$res = $dlg.ShowDialog($owner)",
           "if ($res -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($dlg.SelectedPath) }",
         ],
-        { FOD_START: start },
+        { TURNLEAF_START: start },
       );
       res.json(picked ? { path: picked } : { cancelled: true });
     } catch (e) {

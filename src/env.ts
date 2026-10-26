@@ -6,12 +6,12 @@ import { fileURLToPath } from "node:url";
  * Root of all app resources and working data.
  *
  * In development this resolves to the project root (from this file's location).
- * In a packaged build the Tauri launcher sets FOD_HOME to a writable app home
+ * In a packaged build the Tauri launcher sets TURNLEAF_HOME to a writable app home
  * that mirrors the same directory layout, so every path below is identical in
  * both modes — the code never needs to know whether it's bundled or in-tree.
  */
-export const ROOT = process.env.FOD_HOME
-  ? path.resolve(process.env.FOD_HOME)
+export const ROOT = process.env.TURNLEAF_HOME
+  ? path.resolve(process.env.TURNLEAF_HOME)
   : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Read-only resources (bundled with the app).
@@ -45,8 +45,8 @@ export function readPaperClasspath(): string[] {
 
 // Baked in by scripts/bundle.mjs (esbuild define); undeclared when running
 // from source via tsx, so only touch them through typeof guards.
-declare const __FOD_PKG_VERSION__: string | undefined;
-declare const __FOD_PKG_REPO__: string | undefined;
+declare const __TURNLEAF_PKG_VERSION__: string | undefined;
+declare const __TURNLEAF_PKG_REPO__: string | undefined;
 
 function devPkg(): { version?: string; repository?: unknown } | null {
   const p = path.join(ROOT, "package.json");
@@ -67,21 +67,21 @@ function repoSlug(repository: unknown): string | null {
 
 /** The running app version (baked into the bundle; package.json in dev). */
 export const VERSION =
-  (typeof __FOD_PKG_VERSION__ === "string" && __FOD_PKG_VERSION__) || devPkg()?.version || "0.0.0";
+  (typeof __TURNLEAF_PKG_VERSION__ === "string" && __TURNLEAF_PKG_VERSION__) || devPkg()?.version || "0.0.0";
 
 /**
  * GitHub "owner/name" to poll for new releases, or null to disable the update
- * check (e.g. while the project has no GitHub remote yet). FOD_UPDATE_REPO
+ * check (e.g. while the project has no GitHub remote yet). TURNLEAF_UPDATE_REPO
  * overrides for testing.
  */
 export const UPDATE_REPO =
-  process.env.FOD_UPDATE_REPO ||
-  (typeof __FOD_PKG_REPO__ === "string" && __FOD_PKG_REPO__) ||
+  process.env.TURNLEAF_UPDATE_REPO ||
+  (typeof __TURNLEAF_PKG_REPO__ === "string" && __TURNLEAF_PKG_REPO__) ||
   repoSlug(devPkg()?.repository) ||
   null;
 
 /** Path to the bundled single-file build, set by the packaged launcher. */
-export const BUNDLE = process.env.FOD_BUNDLE;
+export const BUNDLE = process.env.TURNLEAF_BUNDLE;
 
 /**
  * argv (after the node executable) needed to re-invoke this CLI with a new

@@ -1,4 +1,4 @@
-// Test double: pretends to be a folia-on-demand server from an OLD version
+// Test double: pretends to be a Turnleaf server from an OLD version
 // squatting on the app port. The launcher should detect the version mismatch,
 // POST /api/shutdown, and start a real server after we exit.
 const http = require("http");

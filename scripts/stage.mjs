@@ -1,7 +1,7 @@
 // Stage the self-contained app home into dist/home/.
 //
 // The staged tree mirrors the dev layout exactly (src/env.ts paths are all
-// relative to ROOT), so the packaged launcher just sets FOD_HOME to a copy of
+// relative to ROOT), so the packaged launcher just sets TURNLEAF_HOME to a copy of
 // this tree and everything resolves. Runtime prerequisites: Node + Java only.
 //
 //   dist/home/

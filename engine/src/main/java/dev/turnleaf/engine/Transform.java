@@ -1,4 +1,4 @@
-package dev.foliaondemand.engine;
+package dev.turnleaf.engine;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -44,6 +44,9 @@ import java.util.zip.ZipEntry;
  * patches plugin.yml, and strips jar-signing metadata.
  */
 public final class Transform {
+
+    /** Where the shim went for plugins without a main class, before the rename. */
+    private static final String LEGACY_FALLBACK_SHIM = "foliaondemand/injected/";
 
     // ---- Job model (deserialized from the TypeScript-built JSON job) ----
 
@@ -148,7 +151,11 @@ public final class Transform {
                 if (job.relocation() != null && name.startsWith(job.relocation().toPrefix() + "/")) {
                     continue;
                 }
-                if (name.equals("folia-on-demand.properties")) {
+                if (name.equals(JarTools.STAMP) || name.equals(JarTools.LEGACY_STAMP)) {
+                    continue;
+                }
+                // Same for a shim injected under the pre-rename fallback package.
+                if (job.relocation() != null && name.startsWith(LEGACY_FALLBACK_SHIM)) {
                     continue;
                 }
                 if (!writtenEntries.add(name)) {
@@ -207,12 +214,12 @@ public final class Transform {
             }
 
             // Audit stamp: which converter/shim produced this jar, and when.
-            if (job.stamp() != null && !job.stamp().isEmpty() && writtenEntries.add("folia-on-demand.properties")) {
+            if (job.stamp() != null && !job.stamp().isEmpty() && writtenEntries.add(JarTools.STAMP)) {
                 StringBuilder sb = new StringBuilder();
                 job.stamp().entrySet().stream()
                         .sorted(Map.Entry.comparingByKey())
                         .forEach(e -> sb.append(e.getKey()).append('=').append(e.getValue()).append('\n'));
-                out.putNextEntry(new ZipEntry("folia-on-demand.properties"));
+                out.putNextEntry(new ZipEntry(JarTools.STAMP));
                 out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
                 out.closeEntry();
             }

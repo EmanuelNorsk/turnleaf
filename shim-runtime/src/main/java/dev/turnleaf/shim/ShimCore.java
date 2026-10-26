@@ -1,4 +1,4 @@
-package dev.foliaondemand.shim;
+package dev.turnleaf.shim;
 
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
