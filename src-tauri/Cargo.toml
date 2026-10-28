@@ -1,6 +1,6 @@
 [package]
 name = "turnleaf"
-version = "1.0.4"
+version = "1.0.5"
 description = "Turn Paper plugins into Folia plugins"
 edition = "2021"
 
